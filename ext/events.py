@@ -1,4 +1,4 @@
-import discord
+import discord, asyncio
 from discord.ext import commands
 
 class Events():
@@ -42,6 +42,14 @@ class Events():
     
   async def on_member_ban(self, member):
     await self.meme.unban(member.server, member)
+
+  async def on_message(self, message):
+    if message.author.id == '223222767384920081':
+      await self.meme.add_reaction(message, '🇫')
+      await asyncio.sleep(1)
+      await self.meme.add_reaction(message, '🇦')
+      await asyncio.sleep(1)
+      await self.meme.add_reaction(message, '🇬')
 
 def setup(meme):
   meme.add_cog(Events(meme))
