@@ -7,17 +7,24 @@ class Sounds():
 
   #function to connect to voice channel, and start playing -- all commands call this
   async def connectForSound(self, member, file):
-    if(member.voice.voice_channel):
-      voice = await self.meme.join_voice_channel(member.voice.voice_channel)
-      player = voice.create_ffmpeg_player('ext/clip/'+file)
-      player.start()
-      while(player.is_playing()):
-        None
-      await voice.disconnect()
+    if(isfile('ext/clip/'+file)):
+      if(member.voice.voice_channel):
+        voice = await self.meme.join_voice_channel(member.voice.voice_channel)
+        player = voice.create_ffmpeg_player('ext/clip/'+file)
+        player.start()
+        while(player.is_playing()):
+          None
+        await voice.disconnect()
+    else:
+      print("Yo file not found. Is it named right?")
 
   @commands.command(pass_context=True)
   async def nou(self, ctx):
     await Sounds.connectForSound(self, ctx.message.author, 'NoU.m4a')
+    
+  @commands.command(pass_context=True)
+  async def ahhh(self, ctx):
+    await Sounds.connectForSound(self, ctx.message.author, 'ahh.mp3')
     
   @commands.command(pass_context=True)
   async def steamed(self, ctx):
@@ -56,6 +63,10 @@ class Sounds():
     await Sounds.connectForSound(self, ctx.message.author, 'birdup.mp3')
     
   @commands.command(pass_context=True)
+  async def headon(self, ctx):
+    await Sounds.connectForSound(self, ctx.message.author, 'headon.mp3')
+    
+  @commands.command(pass_context=True)
   async def pussy(self, ctx):
     await Sounds.connectForSound(self, ctx.message.author, 'pussy.mp3')
 
@@ -75,7 +86,7 @@ class Sounds():
   async def luigi(self, ctx):
     await Sounds.connectForSound(self, ctx.message.author, 'luigi.wav')
 
-  '''
+  '''banned
   @commands.command(pass_context=True)
   async def flute(self, ctx):
     await Sounds.connectForSound(self, ctx.message.author, 'flute.mp3')

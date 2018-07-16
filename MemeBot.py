@@ -6,27 +6,38 @@ import discord
 import logging
 import asyncio
 from discord.ext import commands
-import traceback
+import traceback, configparser
 from os import listdir
 from os.path import isfile, join
 
-token = "NDE5MzM3MDczNzc5MDE1NzIw.Da1noQ.zDne822BF3sKIJajt4S9lCjfhAc"
-cogs_dir = "ext"
+configName = 'memebot.ini'
+config = configparser.ConfigParser()
+if(not isfile(configName)):
+  config['General'] = {}
+  config['General']['Token'] = input("Config file not found! Enter your bot token: ")
+  config['General']['CogsDir'] = 'ext'
+  config['General']['Prefix'] = '!'
+  with open(configName, 'w') as configfile:
+    config.write(configfile)
+    configfile.close()
+  print("Config file created...launching bot now\n")
 
-people = {"189495247762489344", "196139912020492289", "226455807300993024", "321871570144329728", "196798817054490624", "405947141396103168", "179706306586738688"}
-#                   Me                        Emilio                        Dunkey                      LitRoom                   Caleb                         Jack                        Armand
+with open(configName, 'r') as configfile:
+  config.read_file(configfile)
+token = config['General']['Token']
+cogs_dir = config['General']['CogsDir']
+prefix = config['General']['Prefix']
+configfile.close()
 
-meme = commands.Bot(description="Meme Bot is your God now", command_prefix="!")
-
-print("DON'T CLOSE THIS SHIT")
+meme = commands.Bot(description="Meme Bot is your God now", command_prefix=prefix)
 
 @meme.event
 async def on_ready():
-  print("Meme-Bot Successfully Started!")
+  print("\nMeme-Bot Successfully Started!")
   x = 0
   for s in meme.servers:
     x = x+1
-  print("Connected to "+str(x)+" Servers.")
+  print("Connected to "+str(x)+" Servers.\n")
   
 @meme.command()
 async def load(extension_name : str):
@@ -52,8 +63,12 @@ if __name__ == "__main__":
     except Exception as e:
       print(f'Failed to load extension {extension}.')
       traceback.print_exc()
-      
+
   try:
     meme.run(token)
   except discord.LoginFailure:
-    print("Incorrect token! Plz fix!")
+    config['General']['Token'] = input("Bot token incorrect! Enter your bot token then relaunch: ")
+    with open(configName, 'w') as configfile:
+      config.write(configfile)
+      configfile.close()
+    exit()
