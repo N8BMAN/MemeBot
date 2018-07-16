@@ -1,18 +1,21 @@
 import discord, asyncio
 from discord.ext import commands
-import time, json, requests
+import time, json, requests, configparser
 from plexapi.server import PlexServer
 
 class Plex():
   def __init__(self, meme):
     self.meme = meme
 
-
+  configName = 'memebot.ini'
+  config = configparser.ConfigParser()
+  with open(configName, 'r') as configfile:
+    config.read_file(configfile)
   userCooldown = []
-  api_token = 'dd23e558a85a4559a28007390da91583'
-  api_url_base = 'http://192.168.0.16:7878/api'
-  plex_token = 'VyykuTbaKX9fKpBuZNsZ'
-  plex_baseurl = 'http://192.168.0.16:32400'
+  api_token = config['Plex']['RadarrToken']
+  api_url_base = config['Plex']['RadarrURL']
+  plex_token = config['Plex']['PlexToken']
+  plex_baseurl = config['Plex']['PlexURL']
   plex = PlexServer(plex_baseurl, plex_token)
 
 
