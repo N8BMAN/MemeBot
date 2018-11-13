@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from os.path import isfile
 
 class Sounds():
   def __init__(self, meme):
@@ -8,15 +9,14 @@ class Sounds():
   #function to connect to voice channel, and start playing -- all commands call this
   async def connectForSound(self, member, file):
     if(isfile('ext/clip/'+file)):
-      if(member.voice.voice_channel):
-        voice = await self.meme.join_voice_channel(member.voice.voice_channel)
-        player = voice.create_ffmpeg_player('ext/clip/'+file)
-        player.start()
-        while(player.is_playing()):
-          None
+      if(member.voice.channel):
+        voice = await member.voice.channel.connect()
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio('ext/clip/'+file))
+        voice.play(source)
+        while(voice.is_playing()): None
         await voice.disconnect()
     else:
-      print("Yo file not found. Is it named right?")
+      print("N8 fucked up the file name")
 
   @commands.command(pass_context=True)
   async def nou(self, ctx):
@@ -161,6 +161,18 @@ class Sounds():
   @commands.command(pass_context=True)
   async def brum(self, ctx):
     await Sounds.connectForSound(self, ctx.message.author, 'brum.m4a')
+
+  @commands.command(pass_context=True)
+  async def alexa(self, ctx):
+    await Sounds.connectForSound(self, ctx.message.author, 'despacito.mp3')
+
+  @commands.command(pass_context=True)
+  async def mrsobama(self, ctx):
+    await Sounds.connectForSound(self, ctx.message.author, 'mrsobama.mp3')
+
+  @commands.command(pass_context=True)
+  async def sans(self, ctx):
+    await Sounds.connectForSound(self, ctx.message.author, 'sans.mp3')
 
 
 def setup(meme):

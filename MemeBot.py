@@ -6,57 +6,47 @@ import discord
 import logging
 import asyncio
 from discord.ext import commands
-import traceback, configparser
+import traceback
 from os import listdir
 from os.path import isfile, join
+import settings
 
-configName = 'memebot.ini'
-config = configparser.ConfigParser()
-if(not isfile(configName)):
-  config['General'] = {}
-  config['General']['Token'] = input("Config file not found! Enter your bot token: ")
-  config['General']['CogsDir'] = 'ext'
-  config['General']['Prefix'] = '!'
-  with open(configName, 'w') as configfile:
-    config.write(configfile)
-    configfile.close()
-  print("Config file created...launching bot now\n")
+settings.init()
+meme = commands.Bot(description="Meme Bot is your God now", command_prefix=settings.config['General']['Prefix'])
 
-with open(configName, 'r') as configfile:
-  config.read_file(configfile)
-token = config['General']['Token']
-cogs_dir = config['General']['CogsDir']
-prefix = config['General']['Prefix']
-configfile.close()
-
-meme = commands.Bot(description="Meme Bot is your God now", command_prefix=prefix)
+cogs_dir = settings.config['General']['CogsDir']
 
 @meme.event
 async def on_ready():
   print("\nMeme-Bot Successfully Started!")
-  x = 0
-  for s in meme.servers:
-    x = x+1
-  print("Connected to "+str(x)+" Servers.\n")
+  print(f"Connected to {len(meme.guilds)} Servers.\n")
+
+@meme.command()
+async def listCogs(ctx):
+  message = '**Extensions Currently Running:**\n'
+  for ext in meme.extensions:
+    message+=f'{ext[4:]}\n'
+  await ctx.send(message)
   
 @meme.command()
-async def load(extension_name : str):
+async def load(ctx, extension_name : str):
   """Loads other shit"""
   try:
-    meme.load_extension(extension_name)
+    meme.load_extension(cogs_dir + '.' + extension_name)
   except (AttributeError, ImportError) as e:
-    await meme.say("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
+    await ctx.send("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
     return
-  await meme.say("{} loaded.".format(extension_name))
+  await ctx.send(f"Extension **{extension_name}** loaded.")
   
 @meme.command()
-async def unload(extension_name : str):
+async def unload(ctx, extension_name : str):
   """Unloads other shit"""
-  meme.unload_extension(extension_name)
-  await meme.say("{} unloaded.".format(extension_name))
+  meme.unload_extension(cogs_dir + '.' + extension_name)
+  await ctx.send(f"Extension **{extension_name}** unloaded.")
   
 if __name__ == "__main__":
   for extension in [f.replace('.py', '') for f in listdir(cogs_dir) if isfile(join(cogs_dir, f))]:
+    if extension == '__init__': continue
     try:
       meme.load_extension(cogs_dir + "." + extension)
       print(f'Loaded extension \"{extension}\"')
@@ -65,10 +55,6 @@ if __name__ == "__main__":
       traceback.print_exc()
 
   try:
-    meme.run(token)
+    meme.run(settings.config['General']['Token'])
   except discord.LoginFailure:
-    config['General']['Token'] = input("Bot token incorrect! Enter your bot token then relaunch: ")
-    with open(configName, 'w') as configfile:
-      config.write(configfile)
-      configfile.close()
-    exit()
+    input("Bot token incorrect. Update the ini file, then relaunch.")
