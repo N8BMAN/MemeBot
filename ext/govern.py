@@ -109,19 +109,19 @@ class Govern():
       await ctx.send(ctx.message.mentions[0].mention+"'s role has more than one person!")
 
     else:
+      self.active_vote = True
       nominee = ctx.message.mentions[0]
       current = ctx.guild.roles[len(ctx.guild.roles)-2].members[0]
       await ctx.send("**IMPEACHMENT TIME**")
       await ctx.send(f"{nominee.mention} vs {current.mention}")
       await ctx.send("Type \"!vote\" to vote for impeachment.")
       await ctx.send("5 votes needed!")
-      self.active_vote = True
       timer = time.time() + 300
-      while time.time() < timer and self.voteCount < 1:
+      while time.time() < timer and self.voteCount < 5:
         await asyncio.sleep(1)
 
       await ctx.send("Voting has ended!")
-      if self.voteCount >= 1:
+      if self.voteCount >= 5:
         await ctx.send("The vote passed! Swapping roles.")
         await self.swapUtil(nominee, current)
       
@@ -136,6 +136,38 @@ class Govern():
         self.voteCount = 0
         self.voterList = []
         self.active_vote = False
+
+  @commands.command()
+  async def votekick(self, ctx, *, members=None):
+    """Vote kick memer(s)"""
+    if self.active_vote:
+      await ctx.send("There is already a vote going on!")
+    elif(not members):
+      await ctx.send("You must mention at least one memer to kick!")
+    else:
+      self.active_vote = True
+      await ctx.send("**VOTE KICK TIME**")
+      if len(ctx.message.mentions) == 1:
+        await ctx.send(f"Will we kick {ctx.message.mentions[0].mention}?")
+      else:
+        await ctx.send(f"Will we kick them all?")
+      await ctx.send("Type \"!vote\" to vote yes.")
+      await ctx.send("5 votes needed!")
+
+      timer = time.time() + 300
+      while time.time() < timer and self.voteCount < 5:
+        await asyncio.sleep(1)
+
+      await ctx.send("Voting has ended!")
+      if self.voteCount >= 5:
+        await ctx.send("The vote passed! They will be kicked.")
+        for memer in ctx.message.mentions:
+          await ctx.guild.ban(memer, reason="Memebot said so")
+      else:
+        await ctx.send("They will not be kicked!")
+      self.voteCount = 0
+      self.voterList = []
+      self.active_vote = False
 
   @commands.command()
   async def vote(self, ctx):
