@@ -2,17 +2,17 @@ import discord, asyncio
 from discord.ext import commands
 import time, json, requests, configparser
 from plexapi.server import PlexServer
-import settings
+from settings import config
 
-class Plex():
+class Plex(commands.Cog):
   def __init__(self, meme):
     self.meme = meme
 
     self.userCooldown = []
-    self.api_token = settings.config['Plex']['RadarrToken']
-    self.api_url_base = settings.config['Plex']['RadarrURL']
-    self.plex_token = settings.config['Plex']['PlexToken']
-    self.plex_baseurl = settings.config['Plex']['PlexURL']
+    self.api_token = config['Plex']['RadarrToken']
+    self.api_url_base = config['Plex']['RadarrURL']
+    self.plex_token = config['Plex']['PlexToken']
+    self.plex_baseurl = config['Plex']['PlexURL']
 
     self.plex = PlexServer(self.plex_baseurl, self.plex_token)
 
@@ -35,7 +35,7 @@ class Plex():
     response = requests.post(api_url, json=movie, headers=headers)
   
     if response.status_code == 200 or response.status_code == 201 or response.status_code == 202:
-      await ctx.send("Movie added sucessfully!")
+      await ctx.send("Movie added successfully!")
     else:
       await ctx.send("Movie failed to be added...")
 
@@ -57,9 +57,10 @@ class Plex():
         searchClone = search[:]
         plex_movies = self.plex.library.section('Movies')
         for movie in search:
-          plex_search = plex_movies.search(title = movie['title'], year = movie['year'])
-          if len(plex_search) > 0 or movie['status'] != 'released':
-            searchClone.remove(movie)
+          if movie['status'] == 'released':
+            plex_search = plex_movies.search(title = movie['title'], year = movie['year'])
+            if len(plex_search) > 0 or not movie['status'] == 'released':
+              searchClone.remove(movie)
 
         search = searchClone[:]
         x = 0
@@ -78,7 +79,11 @@ class Plex():
           return m.author == ctx.message.author
         while(not str(selection).isdigit() or int(selection) < 1 or int(selection) > x):
           await ctx.send('Select a movie to add, 1 to '+str(x)+'. or type \'cancel\'')
-          msg = await self.meme.wait_for('message', check = check, timeout = 30)
+          try:
+            msg = await self.meme.wait_for('message', check = check, timeout = 30)
+          except asyncio.TimeoutError as e:
+            await ctx.send('Search cancelled.')
+            return
           if msg == None or msg.content == 'cancel':
             await ctx.send('Search cancelled.')
             return  
@@ -94,7 +99,7 @@ class Plex():
           await asyncio.sleep(86400)
           self.userCooldown.remove(ctx.message.author)
       except Exception as e:
-        await ctx.send(f"Something broke. Try a different search term. {e}")
+        await ctx.send(f"OOPSIE WOOPSIE!! Uwu We made a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!\n{e}")
 
 
 def setup(meme):

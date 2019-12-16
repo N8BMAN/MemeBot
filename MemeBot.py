@@ -20,31 +20,9 @@ cogs_dir = settings.config['General']['CogsDir']
 async def on_ready():
   print("\nMeme-Bot Successfully Started!")
   print(f"Connected to {len(meme.guilds)} Servers.\n")
-
-@meme.command()
-async def listCogs(ctx):
-  message = '**Extensions Currently Running:**\n'
-  for ext in meme.extensions:
-    message+=f'{ext[4:]}\n'
-  await ctx.send(message)
-  
-@meme.command()
-async def load(ctx, extension_name : str):
-  """Loads other shit"""
-  try:
-    meme.load_extension(cogs_dir + '.' + extension_name)
-  except (AttributeError, ImportError) as e:
-    await ctx.send("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
-    return
-  await ctx.send(f"Extension **{extension_name}** loaded.")
-  
-@meme.command()
-async def unload(ctx, extension_name : str):
-  """Unloads other shit"""
-  meme.unload_extension(cogs_dir + '.' + extension_name)
-  await ctx.send(f"Extension **{extension_name}** unloaded.")
   
 if __name__ == "__main__":
+  meme.remove_command('help')
   for extension in [f.replace('.py', '') for f in listdir(cogs_dir) if isfile(join(cogs_dir, f))]:
     if extension == '__init__': continue
     try:

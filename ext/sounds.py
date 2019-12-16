@@ -1,179 +1,76 @@
 import discord
+import sys
 from discord.ext import commands
-from os.path import isfile
+from os.path import isfile, join
+from os import listdir
+from settings import config
+from gtts import gTTS
+from io import BytesIO
+from tempfile import TemporaryFile
 
-class Sounds():
+class Sounds(commands.Cog):
+  '''!help Sounds to see available sound clips'''
   def __init__(self, meme):
     self.meme = meme
 
-  #function to connect to voice channel, and start playing -- all commands call this
-  async def connectForSound(self, member, file):
-    if(isfile('ext/clip/'+file)):
+  async def connectForSound(self, member, f):
+    '''Connects to the voice channel the given member is in, and plays the given file'''
+    commands.HelpCommand()
+    if(isfile(join(config['Sounds']['ClipsDir'], f))):
       if(member.voice.channel):
         voice = await member.voice.channel.connect()
-        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio('ext/clip/'+file))
+        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(join(config['Sounds']['ClipsDir'], f)))
         voice.play(source)
         while(voice.is_playing()): None
         await voice.disconnect()
     else:
       print("N8 fucked up the file name")
 
-  @commands.command(pass_context=True)
-  async def nou(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'NoU.m4a')
-    
-  @commands.command(pass_context=True)
-  async def ahhh(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'ahh.mp3')
-    
-  @commands.command(pass_context=True)
-  async def steamed(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'steamed-hams.mp3')
+  @staticmethod
+  async def getAllSoundFiles():
+    '''Returns the list of all files found in the configured sound clips directory'''
+    return [f for f in listdir(config['Sounds']['ClipsDir']) if isfile(join(config['Sounds']['ClipsDir'], f))]
 
-  @commands.command(pass_context=True)
-  async def number15(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'footlettuce.mp3')
-    
-  @commands.command(pass_context=True)
-  async def orbs(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'ORBS.mp3')
-    
-  @commands.command(pass_context=True)
-  async def quack(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'quack.mp3')
-      
-  @commands.command(pass_context=True)
-  async def bazinga(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'bazinga.mp3')
-    
-  @commands.command(pass_context=True)
-  async def ree(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'ree.mp3')
-    
-  @commands.command(pass_context=True)
-  async def cartman(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'cartman.mp3')
+  @staticmethod
+  async def getSoundDictionary():
+    '''Returns the dictionary of all sound clips and their file names'''
+    files = await Sounds.getAllSoundFiles()
+    return dict(zip([key.split(".")[0] for key in files], files))
 
-  @commands.command(pass_context=True)
-  async def skidaddle(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'skidaddle.mp3')
-    
-  @commands.command(pass_context=True)
-  async def birdup(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'birdup.mp3')
-    
-  @commands.command(pass_context=True)
-  async def headon(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'headon.mp3')
-    
-  @commands.command(pass_context=True)
-  async def pussy(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'pussy.mp3')
+  @commands.command()
+  async def playSound(self, ctx, clip):
+    '''!help Sounds to see a list of clips'''
+    soundsDict = await Sounds.getSoundDictionary()
+    if clip in soundsDict:
+      await Sounds.connectForSound(self, ctx.message.author, soundsDict[clip])
+    else:
+      await ctx.send("Sound clip not found. Try again.")
 
-  @commands.command(pass_context=True)
-  async def eddy(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'ed_murph.mp3')
-  
-  @commands.command(pass_context=True)
-  async def revolution(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'ussr.mp3')
-  
-  @commands.command(pass_context=True)
-  async def smoke(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'smoke.mp3')
+  @commands.command()
+  async def say(self, ctx, *, script):
+    '''Meme-Bot Talks! Tell him what to say'''
+    try:
+      with TemporaryFile() as tmp:
+        ttsScript = gTTS(script)
+        ttsScript.write_to_fp(tmp)
+        tmp.seek(0)
+        source = discord.FFmpegPCMAudio(source=tmp, pipe=True)
+        voice = await ctx.message.author.voice.channel.connect()
+        voice.play(source)
+        while(voice.is_playing()): None
+        await voice.disconnect()
+    except Exception as e:
+      print(e)
+      await Sounds.connectForSound(self, ctx.message.author, "NotNow.mp3")
 
-  @commands.command(pass_context=True)
-  async def luigi(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'luigi.wav')
-
-  '''banned
-  @commands.command(pass_context=True)
-  async def flute(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'flute.mp3')
-  '''
-  
-  @commands.command(pass_context=True)
-  async def hmm(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'hmm.mp3')
-  
-  @commands.command(pass_context=True)
-  async def aeiou(self, ctx):
-    """~~~~SOUNDS BEGIN~~~~"""
-    await Sounds.connectForSound(self, ctx.message.author, 'aarug.mp3')
-  
-  @commands.command(pass_context=True)
-  async def hai(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'mark.mp3')
-  
-  @commands.command(pass_context=True)
-  async def destroy(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'destroy.wav')
-  
-  @commands.command(pass_context=True)
-  async def scanning(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'alex.mp3')
-  
-  @commands.command(pass_context=True)
-  async def areyousure(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'areyou.mp3')
-  
-  @commands.command(pass_context=True)
-  async def birth(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'birth.mp3')
-  
-  @commands.command(pass_context=True)
-  async def argonian(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'argonian.mp3')
-  
-  @commands.command(pass_context=True)
-  async def call(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'call.mp3')
-  
-  @commands.command(pass_context=True)
-  async def xanny(self, ctx):
-    """~~~~SOUNDS END~~~~"""
-    await Sounds.connectForSound(self, ctx.message.author, 'xanny.mp3')
-  
-  @commands.command(pass_context=True)
-  async def hat(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'hat.mp3')
-  
-  @commands.command(pass_context=True)
-  async def box(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'box.mp3')
-
-  @commands.command(pass_context=True)
-  async def order66(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'order66.mp3')
-  
-  @commands.command(pass_context=True)
-  async def gtfo(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'gtfo.mp3')
-  
-  @commands.command(pass_context=True)
-  async def right(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'right.mp3')
-  
-  @commands.command(pass_context=True)
-  async def left(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'left.mp3')
-  
-  @commands.command(pass_context=True)
-  async def brum(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'brum.m4a')
-
-  @commands.command(pass_context=True)
-  async def alexa(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'despacito.mp3')
-
-  @commands.command(pass_context=True)
-  async def mrsobama(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'mrsobama.mp3')
-
-  @commands.command(pass_context=True)
-  async def sans(self, ctx):
-    await Sounds.connectForSound(self, ctx.message.author, 'sans.mp3')
-
+  @commands.Cog.listener()
+  async def on_message(self, message):
+    if message.author == self.meme.user:
+      return
+    if message.content.startswith(config['General']['Prefix']):
+      soundsDict = await Sounds.getSoundDictionary()
+      if message.content[1:] in soundsDict:
+        await Sounds.connectForSound(self, message.author, soundsDict[message.content[1:]])
 
 def setup(meme):
   meme.add_cog(Sounds(meme))

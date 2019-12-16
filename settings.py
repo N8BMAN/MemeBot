@@ -24,6 +24,8 @@ def createINI(configName):
   configNew['Plex']['RadarrURL'] = 'Enter urlbase'
   configNew['Plex']['PlexToken'] = 'Enter token'
   configNew['Plex']['PlexURL'] = 'Enter urlbase'
+  configNew['Sounds'] = {}
+  configNew['Sounds']['ClipsDir'] = 'ext/clip'
   with open(configName, 'w') as configfile:
     configNew.write(configfile)
   print("Config file created!\n")

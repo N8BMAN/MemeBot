@@ -263,3 +263,7 @@ __pycache__/
 *.pyc
 *.pyproj
 /build-*
+
+# Meme Bot Stuff
+Run.bat
+ext/clip/
